@@ -15,11 +15,17 @@
   "author": "Ashley Lamont",
   "license": "ISC",
   "devDependencies": {
+    "@types/cytoscape": "^3.21.8",
     "@types/node": "^16.11.6",
     "aocrunner": "^1.10.0",
-    "prettier": "^2.8.0"
+    "prettier": "^2.8.0",
+    "type-fest": "^4.30.0"
   },
   "engines": {
     "node": ">=16.13.0"
+  },
+  "dependencies": {
+    "cytoscape": "^3.30.4",
+    "lru-cache": "^11.0.2"
   }
 }
