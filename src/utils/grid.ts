@@ -3,16 +3,17 @@ import { Tagged } from "type-fest";
 // Footgun-prevention
 type X = Tagged<number, "x">;
 type Y = Tagged<number, "y">;
+type Point<T> = [X, Y, T];
 
 export class OutOfBoundsError extends Error {}
 
 export class Grid<T = string> {
   // Indexed as y-major to improve performance in reading input data
-  private data: Map<Y, Map<X, T>>;
-  private readonly minX: X | undefined;
-  private readonly minY: Y | undefined;
-  private readonly maxX: X | undefined;
-  private readonly maxY: Y | undefined;
+  private readonly data: Map<Y, Map<X, T>>;
+  public readonly minX: X | undefined;
+  public readonly minY: Y | undefined;
+  public readonly maxX: X | undefined;
+  public readonly maxY: Y | undefined;
 
   constructor({
     minX,
@@ -20,22 +21,22 @@ export class Grid<T = string> {
     maxX,
     maxY,
   }: {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-  }) {
+    minX?: number;
+    maxX?: number;
+    minY?: number;
+    maxY?: number;
+  } = {}) {
     this.data = new Map();
-    if (minX) {
+    if (minX !== undefined) {
       this.minX = minX as X;
     }
-    if (maxX) {
+    if (maxX !== undefined) {
       this.maxX = maxX as X;
     }
-    if (minY) {
+    if (minY !== undefined) {
       this.minY = minY as Y;
     }
-    if (maxY) {
+    if (maxY !== undefined) {
       this.maxY = maxY as Y;
     }
   }
@@ -64,7 +65,7 @@ export class Grid<T = string> {
     return this.data.get(y as Y)?.get(x as X);
   }
 
-  public *[Symbol.iterator]() {
+  public *[Symbol.iterator](): IterableIterator<Point<T>> {
     for (const [y, row] of this.data) {
       for (const [x, cell] of row){
         yield [x, y, cell];
@@ -102,5 +103,26 @@ export class Grid<T = string> {
       grid.set(x, y, cell);
     }
     return grid
+  }
+
+  public cardinalNeighbours(x: number, y: number, includeUndefined: true): IterableIterator<Point<T|undefined>>;
+  public cardinalNeighbours(x: number, y: number, includeUndefined?: false): IterableIterator<Point<T>>;
+  public *cardinalNeighbours(x: number, y: number, includeUndefined: boolean = false): IterableIterator<Point<T|undefined>> {
+    const left = this.get(x-1, y);
+    if (left !== undefined || includeUndefined) yield [x-1 as X, y as Y, left];
+    const right = this.get(x+1, y);
+    if (right !== undefined || includeUndefined) yield [x+1 as X, y as Y, right];
+    const top = this.get(x, y-1);
+    if (top !== undefined || includeUndefined) yield [x as X, y-1 as Y, top];
+    const bottom = this.get(x, y+1);
+    if (bottom !== undefined || includeUndefined) yield [x as X, y+1 as Y, bottom];
+  }
+
+  public get size() {
+    let size = 0;
+    for (const [_y, row] of this.data) {
+      size += row.size;
+    }
+    return size;
   }
 }
